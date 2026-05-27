@@ -3,3 +3,7 @@ python-dotenv
 audio-recorder-streamlit
 numpy
 scipy
+streamlit
+streamlit-webrtc
+av
+soundfile
