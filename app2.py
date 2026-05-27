@@ -13,7 +13,7 @@ from openai import OpenAI
 # OpenAI
 # -----------------------------
 client = OpenAI(
-    api_key=st.secrets[STT_API_KEY]
+    api_key=st.secrets["STT_API_KEY"]
 )
 
 # -----------------------------
