@@ -16,3 +16,4 @@ pymupdf
 python-docx
 yfinance
 lxml
+seaborn
