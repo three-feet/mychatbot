@@ -91,16 +91,32 @@ def show_stock_chart():
     samsung = yf.download("005930.KS", period="7d")["Close"]
     hynix = yf.download("000660.KS", period="7d")["Close"]
 
+    # =========================
+    # 삼성전자 차트
+    # =========================
+    fig1, ax1 = plt.subplots(figsize=(6, 3))
+    ax1.plot(samsung.index, samsung.values)
+    ax1.set_title("📈 Samsung Electronics (7 Days)")
+    ax1.set_ylabel("Price")
+
+    st.pyplot(fig1)
+
+    # =========================
+    # SK하이닉스 차트
+    # =========================
+    fig2, ax2 = plt.subplots(figsize=(6, 3))
+    ax2.plot(hynix.index, hynix.values)
+    ax2.set_title("📈 SK Hynix (7 Days)")
+    ax2.set_ylabel("Price")
+
+    st.pyplot(fig2)
+
+    # =========================
+    # 데이터 테이블
+    # =========================
     df = pd.concat([samsung, hynix], axis=1)
     df.columns = ["Samsung", "SK Hynix"]
 
-    fig, ax = plt.subplots(figsize=(7, 4))
-    df.plot(ax=ax)
-
-    ax.set_title("Samsung & SK Hynix (Last 7 Days)")
-    ax.set_ylabel("Price")
-
-    st.pyplot(fig)
     st.dataframe(df)
 
 # ==================================================
