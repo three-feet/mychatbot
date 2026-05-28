@@ -4,6 +4,10 @@ import time
 import requests
 import tempfile
 import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import FinanceDataReader as fdr
+
 from openai import AzureOpenAI
 
 # ==================================================
@@ -22,18 +26,55 @@ st.set_page_config(
 
 st.markdown("""
 <style>
+
+.main {
+    background-color: #faf7ff;
+}
+
 .stChatMessage {
     border-radius: 15px;
     padding: 10px;
+}
+
+.weather-card {
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    padding: 25px;
+    border-radius: 20px;
+    color: white;
+    margin-bottom: 20px;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.15);
+}
+
+.weather-city {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.weather-temp {
+    font-size: 42px;
+    font-weight: bold;
+}
+
+.weather-desc {
+    font-size: 18px;
+}
+
+.metric-box {
+    background-color: white;
+    padding: 15px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0px 2px 10px rgba(0,0,0,0.08);
+}
+
+.stButton button {
+    border-radius: 10px;
 }
 
 .block-container {
     padding-top: 2rem;
 }
 
-.stButton button {
-    border-radius: 10px;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -74,6 +115,52 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ==================================================
+# 현재 날씨 조회
+# ==================================================
+
+def get_current_weather():
+
+    try:
+
+        location_res = requests.get(
+            "https://ipapi.co/json/",
+            timeout=5
+        )
+
+        location_data = location_res.json()
+
+        city = location_data.get("city", "Seoul")
+
+        weather_url = f"https://wttr.in/{city}?format=j1"
+
+        weather_res = requests.get(
+            weather_url,
+            timeout=5
+        )
+
+        weather_data = weather_res.json()
+
+        current = weather_data["current_condition"][0]
+
+        return {
+            "city": city,
+            "temp": current["temp_C"],
+            "weather": current["weatherDesc"][0]["value"],
+            "humidity": current["humidity"],
+            "wind": current["windspeedKmph"]
+        }
+
+    except Exception:
+
+        return {
+            "city": "Seoul",
+            "temp": "-",
+            "weather": "조회 실패",
+            "humidity": "-",
+            "wind": "-"
+        }
+
+# ==================================================
 # 함수 정의
 # ==================================================
 
@@ -111,6 +198,41 @@ def get_weather(location):
         }
 
 # ==================================================
+# 삼성전자 / 하이닉스 주가 차트
+# ==================================================
+
+def show_stock_chart():
+
+    try:
+
+        samsung = fdr.DataReader("005930")
+        hynix = fdr.DataReader("000660")
+
+        samsung_recent = samsung.tail(90)
+        hynix_recent = hynix.tail(90)
+
+        chart_df = pd.DataFrame({
+            "Samsung Electronics": samsung_recent["Close"],
+            "SK Hynix": hynix_recent["Close"]
+        })
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        chart_df.plot(ax=ax)
+
+        ax.set_title("최근 삼성전자 / SK하이닉스 주가")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Close Price")
+
+        st.pyplot(fig)
+
+        st.dataframe(chart_df.tail())
+
+    except Exception as e:
+
+        st.error(f"주가 데이터 오류: {e}")
+
+# ==================================================
 # 사이드바
 # ==================================================
 
@@ -127,6 +249,7 @@ with st.sidebar:
 - 프리랜서 세금
 - 사업자등록
 - 절세 전략
+- 금융 정보
     """)
 
     st.divider()
@@ -147,6 +270,14 @@ with st.sidebar:
 
     st.divider()
 
+    if st.button("📈 삼성전자 / 하이닉스 주가 보기"):
+
+        st.subheader("📈 반도체 주가 차트")
+
+        show_stock_chart()
+
+    st.divider()
+
     if st.button("🧹 대화 초기화"):
 
         thread = client.beta.threads.create()
@@ -161,7 +292,73 @@ with st.sidebar:
 # ==================================================
 
 st.title("💜 세무요정 지민")
-st.caption("BTS 지민이 알려주는 세법 상담 챗봇")
+st.caption("BTS 지민이 알려주는 세법 + 금융 상담 챗봇")
+
+# ==================================================
+# 그래픽 날씨 카드
+# ==================================================
+
+weather_info = get_current_weather()
+
+st.markdown(f"""
+<div class="weather-card">
+
+<div class="weather-city">
+📍 {weather_info['city']}
+</div>
+
+<br>
+
+<div class="weather-temp">
+🌡 {weather_info['temp']}°C
+</div>
+
+<div class="weather-desc">
+☁️ {weather_info['weather']}
+</div>
+
+<br>
+
+💧 습도: {weather_info['humidity']}%  
+💨 풍속: {weather_info['wind']} km/h
+
+</div>
+""", unsafe_allow_html=True)
+
+# ==================================================
+# 날씨 상세 메트릭
+# ==================================================
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+
+    st.markdown(f"""
+    <div class="metric-box">
+    <h4>🌡 기온</h4>
+    <h2>{weather_info['temp']}°C</h2>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+
+    st.markdown(f"""
+    <div class="metric-box">
+    <h4>💧 습도</h4>
+    <h2>{weather_info['humidity']}%</h2>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+
+    st.markdown(f"""
+    <div class="metric-box">
+    <h4>💨 풍속</h4>
+    <h2>{weather_info['wind']} km/h</h2>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.divider()
 
 # ==================================================
 # 이전 대화 출력
@@ -174,35 +371,12 @@ for msg in st.session_state.messages:
         st.markdown(msg["content"])
 
 # ==================================================
-# 음성 입력
-# ==================================================
-
-audio_file = st.audio_input("🎤 음성으로 질문하기")
-
-voice_prompt = None
-
-if audio_file:
-
-    with st.spinner("음성 인식 중..."):
-
-        transcript = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_file
-        )
-
-        voice_prompt = transcript.text
-
-        st.success(f"인식된 질문: {voice_prompt}")
-
-# ==================================================
 # 채팅 입력
 # ==================================================
 
-text_prompt = st.chat_input(
-    "세금이나 궁금한 걸 물어봐 💜"
+prompt = st.chat_input(
+    "세금이나 금융 관련 궁금한 걸 물어봐 💜"
 )
-
-prompt = voice_prompt if voice_prompt else text_prompt
 
 # ==================================================
 # 파일 업로드 처리
@@ -244,10 +418,6 @@ if prompt:
 
         st.markdown(prompt)
 
-    # ==============================================
-    # 첨부파일 연결
-    # ==============================================
-
     attachments = []
 
     for fid in uploaded_file_ids:
@@ -260,10 +430,6 @@ if prompt:
             ]
         })
 
-    # ==============================================
-    # 사용자 메시지 생성
-    # ==============================================
-
     client.beta.threads.messages.create(
         thread_id=st.session_state.thread_id,
         role="user",
@@ -271,18 +437,10 @@ if prompt:
         attachments=attachments if attachments else None
     )
 
-    # ==============================================
-    # Run 실행
-    # ==============================================
-
     run = client.beta.threads.runs.create(
         thread_id=st.session_state.thread_id,
         assistant_id=assistant_id
     )
-
-    # ==============================================
-    # Assistant 응답 처리
-    # ==============================================
 
     with st.chat_message("assistant"):
 
@@ -315,10 +473,6 @@ if prompt:
                         tool_call.function.arguments
                     )
 
-                    # ==============================
-                    # 곱셈 함수
-                    # ==============================
-
                     if function_name == "mul_numbers":
 
                         result = mul_numbers(
@@ -330,10 +484,6 @@ if prompt:
                             "tool_call_id": tool_call.id,
                             "output": json.dumps(result)
                         })
-
-                    # ==============================
-                    # 날씨 함수
-                    # ==============================
 
                     elif function_name == "get_weather":
 
@@ -348,10 +498,6 @@ if prompt:
                                 ensure_ascii=False
                             )
                         })
-
-                # ==================================
-                # 함수 결과 제출
-                # ==================================
 
                 client.beta.threads.runs.submit_tool_outputs(
                     thread_id=st.session_state.thread_id,
@@ -375,17 +521,9 @@ if prompt:
 
                 for item in content_items:
 
-                    # ==============================
-                    # 텍스트 응답
-                    # ==============================
-
                     if item.type == "text":
 
                         full_response += item.text.value + "\n"
-
-                    # ==============================
-                    # 이미지 응답
-                    # ==============================
 
                     elif item.type == "image_file":
 
@@ -406,27 +544,6 @@ if prompt:
                     "role": "assistant",
                     "content": full_response
                 })
-
-                # ==================================
-                # TTS 음성 출력
-                # ==================================
-
-                try:
-
-                    speech = client.audio.speech.create(
-                        model="tts-1",
-                        voice="nova",
-                        input=full_response
-                    )
-
-                    st.audio(
-                        speech.content,
-                        format="audio/mp3"
-                    )
-
-                except Exception as e:
-
-                    st.warning(f"TTS 오류: {e}")
 
                 break
 
