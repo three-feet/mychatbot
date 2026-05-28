@@ -212,9 +212,7 @@ if prompt:
             st.markdown(prompt)
 
     attachments = [
-        {
-            "file_id": fid
-        }
+        {"file_id": fid}
         for fid in uploaded_file_ids
     ]
 
