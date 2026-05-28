@@ -6,7 +6,7 @@ import tempfile
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import FinanceDataReader as fdr
+import yfinance as yf
 
 from openai import AzureOpenAI
 
@@ -205,31 +205,37 @@ def show_stock_chart():
 
     try:
 
-        samsung = fdr.DataReader("005930")
-        hynix = fdr.DataReader("000660")
-
-        samsung_recent = samsung.tail(90)
-        hynix_recent = hynix.tail(90)
-
+        # 삼성전자
+        samsung = yf.download(
+            "005930.KS",
+            period="3mo"
+        )
+        
+        # SK하이닉스
+        hynix = yf.download(
+            "000660.KS",
+            period="3mo"
+        )
+        
         chart_df = pd.DataFrame({
-            "Samsung Electronics": samsung_recent["Close"],
-            "SK Hynix": hynix_recent["Close"]
+            "Samsung Electronics": samsung["Close"],
+            "SK Hynix": hynix["Close"]
         })
-
+        
         fig, ax = plt.subplots(figsize=(10, 5))
-
+        
         chart_df.plot(ax=ax)
-
+        
         ax.set_title("최근 삼성전자 / SK하이닉스 주가")
         ax.set_xlabel("Date")
         ax.set_ylabel("Close Price")
-
+        
         st.pyplot(fig)
-
+        
         st.dataframe(chart_df.tail())
-
+    
     except Exception as e:
-
+        
         st.error(f"주가 데이터 오류: {e}")
 
 # ==================================================
