@@ -81,17 +81,18 @@ def show_stock_chart():
 
     sns.set_theme(style="whitegrid")
 
-    hynix = yf.download("000660.KS", period="7d")["Close"]
-    samsung = yf.download("005930.KS", period="7d")["Close"]
+    hynix = yf.download("000660.KS", period="7d")["Close"].dropna().reset_index()
+    samsung = yf.download("005930.KS", period="7d")["Close"].dropna().reset_index()
 
     # =========================
-    # SK Hynix (Red + smooth)
+    # SK Hynix
     # =========================
     fig1, ax1 = plt.subplots(figsize=(6, 3))
 
     sns.lineplot(
-        x=hynix.index,
-        y=hynix.values,
+        data=hynix,
+        x="Date",
+        y="Close",
         ax=ax1,
         color="#ef4444",
         linewidth=2.5
@@ -100,21 +101,21 @@ def show_stock_chart():
     ax1.set_title("SK Hynix (7 Days)", fontsize=12, fontweight="bold")
     ax1.set_ylabel("KRW")
     ax1.set_xlabel("")
-    ax1.grid(True, alpha=0.3)
     ax1.ticklabel_format(style='plain', axis='y')
-
+    ax1.grid(True, alpha=0.3)
     fig1.autofmt_xdate()
 
     st.pyplot(fig1)
 
     # =========================
-    # Samsung (Blue modern)
+    # Samsung
     # =========================
     fig2, ax2 = plt.subplots(figsize=(6, 3))
 
     sns.lineplot(
-        x=samsung.index,
-        y=samsung.values,
+        data=samsung,
+        x="Date",
+        y="Close",
         ax=ax2,
         color="#3b82f6",
         linewidth=2.5
@@ -123,13 +124,12 @@ def show_stock_chart():
     ax2.set_title("Samsung Electronics (7 Days)", fontsize=12, fontweight="bold")
     ax2.set_ylabel("KRW")
     ax2.set_xlabel("")
-    ax2.grid(True, alpha=0.3)
     ax2.ticklabel_format(style='plain', axis='y')
-
+    ax2.grid(True, alpha=0.3)
     fig2.autofmt_xdate()
 
     st.pyplot(fig2)
-
+    
 # ==================================================
 # FILE ANALYSIS (SEPARATE THREAD)
 # ==================================================
