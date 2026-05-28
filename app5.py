@@ -3,6 +3,7 @@ import json
 import time
 import requests
 import tempfile
+import numpy as np
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -81,8 +82,16 @@ def show_stock_chart():
 
     sns.set_theme(style="whitegrid")
 
-    hynix = yf.download("000660.KS", period="7d")["Close"].dropna().reset_index()
-    samsung = yf.download("005930.KS", period="7d")["Close"].dropna().reset_index()
+    # =========================
+    # 데이터 안정화 함수
+    # =========================
+    def get_df(ticker):
+        df = yf.download(ticker, period="7d")[["Close"]].dropna().reset_index()
+        df.columns = ["Date", "Close"]
+        return df
+
+    hynix = get_df("000660.KS")
+    samsung = get_df("005930.KS")
 
     # =========================
     # SK Hynix
@@ -94,13 +103,12 @@ def show_stock_chart():
         x="Date",
         y="Close",
         ax=ax1,
-        color="#ef4444",
+        color="red",
         linewidth=2.5
     )
 
-    ax1.set_title("SK Hynix (7 Days)", fontsize=12, fontweight="bold")
-    ax1.set_ylabel("KRW")
-    ax1.set_xlabel("")
+    ax1.set_title("SK Hynix (7 Days)")
+    ax1.set_ylabel("Price")
     ax1.ticklabel_format(style='plain', axis='y')
     ax1.grid(True, alpha=0.3)
     fig1.autofmt_xdate()
@@ -117,13 +125,12 @@ def show_stock_chart():
         x="Date",
         y="Close",
         ax=ax2,
-        color="#3b82f6",
+        color="blue",
         linewidth=2.5
     )
 
-    ax2.set_title("Samsung Electronics (7 Days)", fontsize=12, fontweight="bold")
-    ax2.set_ylabel("KRW")
-    ax2.set_xlabel("")
+    ax2.set_title("Samsung Electronics (7 Days)")
+    ax2.set_ylabel("Price")
     ax2.ticklabel_format(style='plain', axis='y')
     ax2.grid(True, alpha=0.3)
     fig2.autofmt_xdate()
