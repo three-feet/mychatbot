@@ -28,12 +28,12 @@ VECTOR_STORE_ID = "vs_TiYcLEiJgc8m4XdAJJcvRWhO"
 # =========================================================
 
 st.set_page_config(
-    page_title="Azure OpenAI Assistant",
+    page_title="세무 전문 AI",
     page_icon="🤖",
     layout="wide"
 )
 
-st.title("🤖 Azure OpenAI Assistant")
+st.title("🤖 세무 전문 AI")
 st.caption("질문 / 그래프 생성 / 파일 요약 / 데이터 분석")
 
 # =========================================================
