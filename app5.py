@@ -96,48 +96,40 @@ def show_stock_chart():
     # =========================
     fig1, ax1 = plt.subplots(figsize=(6, 3))
 
-    ax1.plot(
-        samsung.index,
-        samsung.values,
-        color="blue"
-    )
-
+    ax1.plot(samsung.index, samsung.values, color="blue")
     ax1.set_title("Samsung Electronics (7 Days)")
     ax1.set_ylabel("Price (KRW)")
-
-    ax1.ticklabel_format(style='plain', axis='y')  # 1e6 제거
-
-    fig1.autofmt_xdate()  # 날짜 자동 회전 (겹침 해결)
+    ax1.ticklabel_format(style='plain', axis='y')
+    fig1.autofmt_xdate()
 
     st.pyplot(fig1)
 
+    samsung_latest = samsung.iloc[-1]
+
+    st.markdown(
+        f"**📍 삼성전자 현재가:** {int(samsung_latest):,}원"
+    )
+
+    st.divider()
+
     # =========================
-    # SK하이닉스 (빨간색)
+    # SK하이닉스
     # =========================
     fig2, ax2 = plt.subplots(figsize=(6, 3))
 
-    ax2.plot(
-        hynix.index,
-        hynix.values,
-        color="red"
-    )
-
+    ax2.plot(hynix.index, hynix.values, color="red")
     ax2.set_title("SK Hynix (7 Days)")
     ax2.set_ylabel("Price (KRW)")
-
-    ax2.ticklabel_format(style='plain', axis='y')  # 1e6 제거
-
-    fig2.autofmt_xdate()  # 날짜 겹침 해결
+    ax2.ticklabel_format(style='plain', axis='y')
+    fig2.autofmt_xdate()
 
     st.pyplot(fig2)
 
-    # =========================
-    # 데이터 테이블
-    # =========================
-    df = pd.concat([samsung, hynix], axis=1)
-    df.columns = ["Samsung", "SK Hynix"]
+    hynix_latest = hynix.iloc[-1]
 
-    st.dataframe(df)
+    st.markdown(
+        f"**📍 SK하이닉스 현재가:** {int(hynix_latest):,}원"
+    )
 
 # ==================================================
 # 파일 분석 (ONE SHOT)
