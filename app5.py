@@ -107,7 +107,7 @@ def show_stock_chart():
     fig, ax = plt.subplots(figsize=(7, 4))
     df.plot(ax=ax)
 
-    ax.set_title("📈 삼성전자 vs SK하이닉스 (3개월)")
+    ax.set_title("Samsung & SK Hynix (3 Month)")
     ax.set_ylabel("Price")
 
     st.pyplot(fig)
