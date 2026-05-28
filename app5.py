@@ -92,22 +92,42 @@ def show_stock_chart():
     hynix = yf.download("000660.KS", period="7d")["Close"]
 
     # =========================
-    # 삼성전자 차트
+    # 삼성전자
     # =========================
     fig1, ax1 = plt.subplots(figsize=(6, 3))
-    ax1.plot(samsung.index, samsung.values)
-    ax1.set_title("📈 Samsung Electronics (7 Days)")
-    ax1.set_ylabel("Price")
+
+    ax1.plot(
+        samsung.index,
+        samsung.values,
+        color="blue"
+    )
+
+    ax1.set_title("Samsung Electronics (7 Days)")
+    ax1.set_ylabel("Price (KRW)")
+
+    ax1.ticklabel_format(style='plain', axis='y')  # 1e6 제거
+
+    fig1.autofmt_xdate()  # 날짜 자동 회전 (겹침 해결)
 
     st.pyplot(fig1)
 
     # =========================
-    # SK하이닉스 차트
+    # SK하이닉스 (빨간색)
     # =========================
     fig2, ax2 = plt.subplots(figsize=(6, 3))
-    ax2.plot(hynix.index, hynix.values)
-    ax2.set_title("📈 SK Hynix (7 Days)")
-    ax2.set_ylabel("Price")
+
+    ax2.plot(
+        hynix.index,
+        hynix.values,
+        color="red"
+    )
+
+    ax2.set_title("SK Hynix (7 Days)")
+    ax2.set_ylabel("Price (KRW)")
+
+    ax2.ticklabel_format(style='plain', axis='y')  # 1e6 제거
+
+    fig2.autofmt_xdate()  # 날짜 겹침 해결
 
     st.pyplot(fig2)
 
