@@ -7,6 +7,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
+import seaborn as sns
 
 from openai import AzureOpenAI
 
