@@ -1,4 +1,3 @@
-```python id="app_final"
 import os
 import json
 import time
@@ -294,4 +293,3 @@ if prompt:
 
                 else:
                     time.sleep(1)
-```
