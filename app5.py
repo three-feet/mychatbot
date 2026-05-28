@@ -213,11 +213,7 @@ if prompt:
 
     attachments = [
         {
-            "file_id": fid,
-            "tools": [
-                {"type": "file_search"},
-                {"type": "code_interpreter"}
-            ]
+            "file_id": fid
         }
         for fid in uploaded_file_ids
     ]
