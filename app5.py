@@ -88,47 +88,47 @@ def get_weather_mini():
 
 def show_stock_chart():
 
-    samsung = yf.download("005930.KS", period="7d")["Close"]
     hynix = yf.download("000660.KS", period="7d")["Close"]
+    samsung = yf.download("005930.KS", period="7d")["Close"]
 
     # =========================
-    # 삼성전자
+    # SK하이닉스 (먼저)
     # =========================
     fig1, ax1 = plt.subplots(figsize=(6, 3))
 
-    ax1.plot(samsung.index, samsung.values, color="blue")
-    ax1.set_title("Samsung Electronics (7 Days)")
+    ax1.plot(hynix.index, hynix.values, color="red")
+    ax1.set_title("SK Hynix (7 Days)")
     ax1.set_ylabel("Price (KRW)")
     ax1.ticklabel_format(style='plain', axis='y')
     fig1.autofmt_xdate()
 
     st.pyplot(fig1)
 
-    samsung_latest = samsung.iloc[-1].item()
+    hynix_latest = hynix.dropna().iloc[-1].item()
 
     st.markdown(
-        f"**📍 삼성전자 현재가:** {samsung_latest:,.0f}원"
+        f"**📍 SK하이닉스 현재가:** {hynix_latest:,.0f}원"
     )
 
     st.divider()
 
     # =========================
-    # SK하이닉스
+    # 삼성전자 (나중)
     # =========================
     fig2, ax2 = plt.subplots(figsize=(6, 3))
 
-    ax2.plot(hynix.index, hynix.values, color="red")
-    ax2.set_title("SK Hynix (7 Days)")
+    ax2.plot(samsung.index, samsung.values, color="blue")
+    ax2.set_title("Samsung Electronics (7 Days)")
     ax2.set_ylabel("Price (KRW)")
     ax2.ticklabel_format(style='plain', axis='y')
     fig2.autofmt_xdate()
 
     st.pyplot(fig2)
 
-    hynix_latest = hynix.iloc[-1].item()
+    samsung_latest = samsung.dropna().iloc[-1].item()
 
     st.markdown(
-        f"**📍 SK하이닉스 현재가:** {hynix_latest:,.0f}원"
+        f"**📍 삼성전자 현재가:** {samsung_latest:,.0f}원"
     )
 
 # ==================================================
