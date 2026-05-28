@@ -7,3 +7,10 @@ streamlit
 streamlit-webrtc
 av
 soundfile
+pillow
+pandas
+matplotlib
+openpyxl
+xlsxwriter
+pymupdf
+python-docx
