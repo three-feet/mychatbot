@@ -3,17 +3,15 @@ import json
 import time
 import requests
 import tempfile
-import numpy as np
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
-import seaborn as sns
 
 from openai import AzureOpenAI
 
 # ==================================================
-# PAGE
+# 페이지 설정
 # ==================================================
 
 st.set_page_config(
@@ -21,6 +19,10 @@ st.set_page_config(
     page_icon="💜",
     layout="wide"
 )
+
+# ==================================================
+# 스타일
+# ==================================================
 
 st.markdown("""
 <style>
@@ -30,24 +32,27 @@ st.markdown("""
     border-radius: 12px;
     color: white;
     font-size: 13px;
+    margin-bottom: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ==================================================
-# AZURE
+# Secrets
 # ==================================================
 
+endpoint = st.secrets["AZURE_OPENAI_ENDPOINT"]
+apikey = st.secrets["AZURE_OPENAI_API_KEY"]
+assistant_id = st.secrets["ASSISTANT_ID"]
+
 client = AzureOpenAI(
-    azure_endpoint=st.secrets["AZURE_OPENAI_ENDPOINT"],
-    api_key=st.secrets["AZURE_OPENAI_API_KEY"],
+    azure_endpoint=endpoint,
+    api_key=apikey,
     api_version="2024-05-01-preview"
 )
 
-assistant_id = st.secrets["ASSISTANT_ID"]
-
 # ==================================================
-# SESSION (chat thread)
+# Thread (chat용)
 # ==================================================
 
 if "thread_id" not in st.session_state:
@@ -58,16 +63,19 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ==================================================
-# WEATHER (SEOUL FIXED)
+# 날씨
 # ==================================================
 
-def get_weather():
+def get_weather_mini():
     try:
-        w = requests.get("https://wttr.in/Seoul?format=j1", timeout=3).json()
+        loc = requests.get("https://ipapi.co/json/", timeout=3).json()
+        city = loc.get("city", "Seoul")
+
+        w = requests.get(f"https://wttr.in/{city}?format=j1", timeout=3).json()
         cur = w["current_condition"][0]
 
         return {
-            "city": "Seoul",
+            "city": city,
             "temp": cur["temp_C"],
             "desc": cur["weatherDesc"][0]["value"]
         }
@@ -75,7 +83,7 @@ def get_weather():
         return {"city": "Seoul", "temp": "-", "desc": "N/A"}
 
 # ==================================================
-# STOCK (7 DAYS)
+# 주가 (1주일)
 # ==================================================
 
 def show_stock_chart():
@@ -84,58 +92,57 @@ def show_stock_chart():
     samsung = yf.download("005930.KS", period="7d")["Close"]
 
     # =========================
-    # SK Hynix
+    # SK하이닉스 (먼저)
     # =========================
-    fig1, ax1 = plt.subplots(figsize=(6, 2.8))
+    fig1, ax1 = plt.subplots(figsize=(6, 3))
 
     ax1.plot(hynix.index, hynix.values, color="red")
     ax1.set_title("SK Hynix (7 Days)")
-    ax1.set_ylabel("Price")
+    ax1.set_ylabel("Price (KRW)")
     ax1.ticklabel_format(style='plain', axis='y')
     fig1.autofmt_xdate()
 
     st.pyplot(fig1)
 
     hynix_latest = hynix.dropna().iloc[-1].item()
-    st.markdown(f"**📍 SK하이닉스 현재가:** {hynix_latest:,.0f}원")
+
+    st.markdown(
+        f"**📍 SK하이닉스 현재가:** {hynix_latest:,.0f}원"
+    )
 
     st.divider()
 
     # =========================
-    # Samsung
+    # 삼성전자 (나중)
     # =========================
-    fig2, ax2 = plt.subplots(figsize=(6, 2.8))
+    fig2, ax2 = plt.subplots(figsize=(6, 3))
 
     ax2.plot(samsung.index, samsung.values, color="blue")
     ax2.set_title("Samsung Electronics (7 Days)")
-    ax2.set_ylabel("Price")
+    ax2.set_ylabel("Price (KRW)")
     ax2.ticklabel_format(style='plain', axis='y')
     fig2.autofmt_xdate()
 
     st.pyplot(fig2)
 
     samsung_latest = samsung.dropna().iloc[-1].item()
-    st.markdown(f"**📍 삼성전자 현재가:** {samsung_latest:,.0f}원")
-    
+
+    st.markdown(
+        f"**📍 삼성전자 현재가:** {samsung_latest:,.0f}원"
+    )
+
 # ==================================================
-# FILE ANALYSIS (SEPARATE THREAD)
+# 파일 분석 (ONE SHOT)
 # ==================================================
 
-def analyze_file(file_path):
-
-    with open(file_path, "rb") as f:
-        up = client.files.create(
-            file=f,
-            purpose="assistants"
-        )
+def analyze_file(file_id):
 
     thread = client.beta.threads.create()
 
     client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
-        content="이 파일을 세무 관점에서 분석해서 요약해줘.",
-        attachments=[{"file_id": up.id}]
+        content="이 파일을 세무 관점에서 분석하고 핵심 내용을 요약해줘."
     )
 
     run = client.beta.threads.runs.create(
@@ -164,18 +171,18 @@ def analyze_file(file_path):
         time.sleep(1)
 
 # ==================================================
-# SIDEBAR (weather + stock only)
+# SIDEBAR
 # ==================================================
 
 with st.sidebar:
 
     st.title("💜 세무요정 지민")
 
-    w = get_weather()
+    w = get_weather_mini()
 
     st.markdown(f"""
 <div class="weather-mini">
-🌤 Seoul<br>
+🌤 {w['city']}<br>
 🌡 {w['temp']}°C<br>
 {w['desc']}
 </div>
@@ -183,72 +190,49 @@ with st.sidebar:
 
     st.divider()
 
-    # =========================
-    # 초기화 버튼 (여기로 이동)
-    # =========================
+    uploaded_files = st.file_uploader(
+        "📄 파일 업로드 (자동 분석)",
+        type=["pdf","txt","csv","xlsx","png","jpg","jpeg"],
+        accept_multiple_files=True
+    )
+
     if st.button("🧹 초기화"):
         thread = client.beta.threads.create()
         st.session_state.thread_id = thread.id
         st.session_state.messages = []
         st.rerun()
 
-    st.divider()
+# ==================================================
+# MAIN
+# ==================================================
 
-    # =========================
-    # 파일 업로드 (여기로 이동)
-    # =========================
-    uploaded_files = st.file_uploader(
-        "📄 파일 업로드 (즉시 분석)",
-        type=["pdf","txt","csv","xlsx","png","jpg","jpeg"],
-        accept_multiple_files=True
-    )
+col1, col2 = st.columns([2, 1])
 
-    st.divider()
+with col1:
 
-    # =========================
-    # 주가 (여전히 사이드바)
-    # =========================
+    st.title("💜 세무요정 지민")
+    st.caption("세법 + 금융 + AI 분석")
+
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    prompt = st.chat_input("세금 / 주식 / 파일 분석 💜")
+
+with col2:
+
+    st.subheader("📈 주가 (1주일)")
     show_stock_chart()
 
 # ==================================================
-# MAIN TOP UI (moved controls)
-# ==================================================
-
-st.title("💜 세무요정 지민")
-
-colA, colB = st.columns([1, 3])
-
-with colA:
-    if st.button("🧹 초기화"):
-        thread = client.beta.threads.create()
-        st.session_state.thread_id = thread.id
-        st.session_state.messages = []
-        st.rerun()
-
-with colB:
-    uploaded_files = st.file_uploader(
-        "📄 파일 업로드 (즉시 분석)",
-        type=["pdf","txt","csv","xlsx","png","jpg","jpeg"],
-        accept_multiple_files=True
-    )
-
-# ==================================================
-# CHAT UI
-# ==================================================
-
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
-prompt = st.chat_input("세금 / 주식 / 파일 분석 💜")
-
-# ==================================================
-# CHAT PROCESS
+# CHAT 처리
 # ==================================================
 
 if prompt:
 
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.messages.append(
+        {"role": "user", "content": prompt}
+    )
 
     st.chat_message("user").markdown(prompt)
 
@@ -266,6 +250,7 @@ if prompt:
     with st.chat_message("assistant"):
 
         box = st.empty()
+        text = ""
 
         while True:
 
@@ -297,7 +282,7 @@ if prompt:
             time.sleep(1)
 
 # ==================================================
-# FILE UPLOAD PROCESS (SEPARATE FROM VECTOR STORE)
+# FILE UPLOAD → 즉시 분석
 # ==================================================
 
 if uploaded_files:
@@ -310,9 +295,15 @@ if uploaded_files:
             tmp.write(file.read())
             path = tmp.name
 
+        with open(path, "rb") as f:
+            up = client.files.create(
+                file=f,
+                purpose="assistants"
+            )
+
         st.info("분석 중... 💜")
 
-        result = analyze_file(path)
+        result = analyze_file(up.id)
 
-        st.success("완료")
+        st.success("완료!")
         st.markdown(result)
