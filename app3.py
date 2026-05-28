@@ -15,8 +15,8 @@ from PIL import Image
 # Azure OpenAI 설정
 # =========================================================
 
-AZURE_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "YOUR_ENDPOINT")
-AZURE_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "YOUR_API_KEY")
+AZURE_ENDPOINT = st.secrets["endpoint"]
+AZURE_API_KEY = st.secrets["apikey"]
 AZURE_API_VERSION = "2024-05-01-preview"
 
 MODEL_NAME = "gpt-4o-mini-10ai011"
