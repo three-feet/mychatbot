@@ -80,62 +80,42 @@ def get_weather():
 
 def show_stock_chart():
 
-    sns.set_theme(style="whitegrid")
-
-    # =========================
-    # 데이터 안정화 함수
-    # =========================
-    def get_df(ticker):
-        df = yf.download(ticker, period="7d")[["Close"]].dropna().reset_index()
-        df.columns = ["Date", "Close"]
-        return df
-
-    hynix = get_df("000660.KS")
-    samsung = get_df("005930.KS")
+    hynix = yf.download("000660.KS", period="7d")["Close"]
+    samsung = yf.download("005930.KS", period="7d")["Close"]
 
     # =========================
     # SK Hynix
     # =========================
-    fig1, ax1 = plt.subplots(figsize=(6, 3))
+    fig1, ax1 = plt.subplots(figsize=(6, 2.8))
 
-    sns.lineplot(
-        data=hynix,
-        x="Date",
-        y="Close",
-        ax=ax1,
-        color="red",
-        linewidth=2.5
-    )
-
+    ax1.plot(hynix.index, hynix.values, color="red")
     ax1.set_title("SK Hynix (7 Days)")
     ax1.set_ylabel("Price")
     ax1.ticklabel_format(style='plain', axis='y')
-    ax1.grid(True, alpha=0.3)
     fig1.autofmt_xdate()
 
     st.pyplot(fig1)
 
+    hynix_latest = hynix.dropna().iloc[-1].item()
+    st.markdown(f"**📍 SK하이닉스 현재가:** {hynix_latest:,.0f}원")
+
+    st.divider()
+
     # =========================
     # Samsung
     # =========================
-    fig2, ax2 = plt.subplots(figsize=(6, 3))
+    fig2, ax2 = plt.subplots(figsize=(6, 2.8))
 
-    sns.lineplot(
-        data=samsung,
-        x="Date",
-        y="Close",
-        ax=ax2,
-        color="blue",
-        linewidth=2.5
-    )
-
+    ax2.plot(samsung.index, samsung.values, color="blue")
     ax2.set_title("Samsung Electronics (7 Days)")
     ax2.set_ylabel("Price")
     ax2.ticklabel_format(style='plain', axis='y')
-    ax2.grid(True, alpha=0.3)
     fig2.autofmt_xdate()
 
     st.pyplot(fig2)
+
+    samsung_latest = samsung.dropna().iloc[-1].item()
+    st.markdown(f"**📍 삼성전자 현재가:** {samsung_latest:,.0f}원")
     
 # ==================================================
 # FILE ANALYSIS (SEPARATE THREAD)
@@ -203,8 +183,31 @@ with st.sidebar:
 
     st.divider()
 
-    st.subheader("")
+    # =========================
+    # 초기화 버튼 (여기로 이동)
+    # =========================
+    if st.button("🧹 초기화"):
+        thread = client.beta.threads.create()
+        st.session_state.thread_id = thread.id
+        st.session_state.messages = []
+        st.rerun()
 
+    st.divider()
+
+    # =========================
+    # 파일 업로드 (여기로 이동)
+    # =========================
+    uploaded_files = st.file_uploader(
+        "📄 파일 업로드 (즉시 분석)",
+        type=["pdf","txt","csv","xlsx","png","jpg","jpeg"],
+        accept_multiple_files=True
+    )
+
+    st.divider()
+
+    # =========================
+    # 주가 (여전히 사이드바)
+    # =========================
     show_stock_chart()
 
 # ==================================================
