@@ -104,10 +104,10 @@ def show_stock_chart():
 
     st.pyplot(fig1)
 
-    samsung_latest = samsung.iloc[-1]
+    samsung_latest = samsung.iloc[-1].item()
 
     st.markdown(
-        f"**📍 삼성전자 현재가:** {int(samsung_latest):,}원"
+        f"**📍 삼성전자 현재가:** {samsung_latest:,.0f}원"
     )
 
     st.divider()
@@ -125,10 +125,10 @@ def show_stock_chart():
 
     st.pyplot(fig2)
 
-    hynix_latest = hynix.iloc[-1]
+    hynix_latest = hynix.iloc[-1].item()
 
     st.markdown(
-        f"**📍 SK하이닉스 현재가:** {int(hynix_latest):,}원"
+        f"**📍 SK하이닉스 현재가:** {hynix_latest:,.0f}원"
     )
 
 # ==================================================
