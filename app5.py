@@ -26,7 +26,6 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-
 .weather-mini {
     background: linear-gradient(135deg, #a855f7, #ec4899);
     padding: 12px;
@@ -35,7 +34,6 @@ st.markdown("""
     font-size: 13px;
     margin-bottom: 10px;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -45,7 +43,6 @@ st.markdown("""
 
 endpoint = st.secrets["AZURE_OPENAI_ENDPOINT"]
 apikey = st.secrets["AZURE_OPENAI_API_KEY"]
-deployment = st.secrets["AZURE_OPENAI_DEPLOYMENT"]
 assistant_id = st.secrets["ASSISTANT_ID"]
 
 client = AzureOpenAI(
@@ -55,7 +52,7 @@ client = AzureOpenAI(
 )
 
 # ==================================================
-# Thread
+# Thread (chat용)
 # ==================================================
 
 if "thread_id" not in st.session_state:
@@ -66,11 +63,10 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ==================================================
-# 날씨 (사이드바용)
+# 날씨
 # ==================================================
 
 def get_weather_mini():
-
     try:
         loc = requests.get("https://ipapi.co/json/", timeout=3).json()
         city = loc.get("city", "Seoul")
@@ -83,38 +79,71 @@ def get_weather_mini():
             "temp": cur["temp_C"],
             "desc": cur["weatherDesc"][0]["value"]
         }
-
     except:
         return {"city": "Seoul", "temp": "-", "desc": "N/A"}
 
 # ==================================================
-# 주가 (자동 표시)
+# 주가 (1주일)
 # ==================================================
 
 def show_stock_chart():
 
-    samsung = yf.download("005930.KS", period="3mo")["Close"]
-    hynix = yf.download("000660.KS", period="3mo")["Close"]
+    samsung = yf.download("005930.KS", period="7d")["Close"]
+    hynix = yf.download("000660.KS", period="7d")["Close"]
 
-    df = pd.concat(
-        [samsung, hynix],
-        axis=1,
-        join="inner"
-    )
-
+    df = pd.concat([samsung, hynix], axis=1)
     df.columns = ["Samsung", "SK Hynix"]
 
     fig, ax = plt.subplots(figsize=(7, 4))
     df.plot(ax=ax)
 
-    ax.set_title("Samsung & SK Hynix (3 Month)")
+    ax.set_title("Samsung & SK Hynix (Last 7 Days)")
     ax.set_ylabel("Price")
 
     st.pyplot(fig)
-    st.dataframe(df.tail())
+    st.dataframe(df)
 
 # ==================================================
-# SIDEBAR (날씨 작게)
+# 파일 분석 (ONE SHOT)
+# ==================================================
+
+def analyze_file(file_id):
+
+    thread = client.beta.threads.create()
+
+    client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content="이 파일을 세무 관점에서 분석하고 핵심 내용을 요약해줘."
+    )
+
+    run = client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=assistant_id
+    )
+
+    while True:
+
+        run = client.beta.threads.runs.retrieve(
+            thread_id=thread.id,
+            run_id=run.id
+        )
+
+        if run.status == "completed":
+
+            msgs = client.beta.threads.messages.list(
+                thread_id=thread.id
+            )
+
+            return msgs.data[0].content[0].text.value
+
+        elif run.status in ["failed", "cancelled", "expired"]:
+            return "❌ 분석 실패"
+
+        time.sleep(1)
+
+# ==================================================
+# SIDEBAR
 # ==================================================
 
 with st.sidebar:
@@ -134,7 +163,7 @@ with st.sidebar:
     st.divider()
 
     uploaded_files = st.file_uploader(
-        "📄 파일 업로드",
+        "📄 파일 업로드 (자동 분석)",
         type=["pdf","txt","csv","xlsx","png","jpg","jpeg"],
         accept_multiple_files=True
     )
@@ -146,56 +175,26 @@ with st.sidebar:
         st.rerun()
 
 # ==================================================
-# MAIN LAYOUT (좌:채팅 / 우:주가)
+# MAIN
 # ==================================================
 
 col1, col2 = st.columns([2, 1])
 
-# ===========================
-# LEFT: CHAT
-# ===========================
-
 with col1:
 
     st.title("💜 세무요정 지민")
-    st.caption("세법 + 금융 + 팬챗 AI")
+    st.caption("세법 + 금융 + AI 분석")
 
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    prompt = st.chat_input("세금 / 주식 / 궁금한 거 물어봐 💜")
-
-# ===========================
-# RIGHT: STOCK (AUTO)
-# ===========================
+    prompt = st.chat_input("세금 / 주식 / 파일 분석 💜")
 
 with col2:
 
-    st.subheader("📈 실시간 주가")
-
+    st.subheader("📈 주가 (1주일)")
     show_stock_chart()
-
-# ==================================================
-# FILE UPLOAD 처리
-# ==================================================
-
-uploaded_file_ids = []
-
-if uploaded_files:
-
-    for file in uploaded_files:
-
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            tmp.write(file.read())
-            path = tmp.name
-
-        up = client.files.create(
-            file=open(path, "rb"),
-            purpose="assistants"
-        )
-
-        uploaded_file_ids.append(up.id)
 
 # ==================================================
 # CHAT 처리
@@ -207,20 +206,12 @@ if prompt:
         {"role": "user", "content": prompt}
     )
 
-    with col1:
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-    attachments = [
-        {"file_id": fid}
-        for fid in uploaded_file_ids
-    ]
+    st.chat_message("user").markdown(prompt)
 
     client.beta.threads.messages.create(
         thread_id=st.session_state.thread_id,
         role="user",
-        content=prompt,
-        attachments=attachments if attachments else None
+        content=prompt
     )
 
     run = client.beta.threads.runs.create(
@@ -228,62 +219,63 @@ if prompt:
         assistant_id=assistant_id
     )
 
-    with col1:
-        with st.chat_message("assistant"):
+    with st.chat_message("assistant"):
 
-            box = st.empty()
-            text = ""
+        box = st.empty()
+        text = ""
 
-            while True:
+        while True:
 
-                run = client.beta.threads.runs.retrieve(
-                    thread_id=st.session_state.thread_id,
-                    run_id=run.id
+            run = client.beta.threads.runs.retrieve(
+                thread_id=st.session_state.thread_id,
+                run_id=run.id
+            )
+
+            if run.status == "completed":
+
+                msgs = client.beta.threads.messages.list(
+                    thread_id=st.session_state.thread_id
                 )
 
-                if run.status == "requires_action":
+                text = msgs.data[0].content[0].text.value
 
-                    outputs = []
+                box.markdown(text)
 
-                    for call in run.required_action.submit_tool_outputs.tool_calls:
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": text}
+                )
 
-                        name = call.function.name
-                        args = json.loads(call.function.arguments)
+                break
 
-                        outputs.append({
-                            "tool_call_id": call.id,
-                            "output": json.dumps({"ok": True})
-                        })
+            elif run.status in ["failed", "cancelled", "expired"]:
+                box.error("오류 발생")
+                break
 
-                    client.beta.threads.runs.submit_tool_outputs(
-                        thread_id=st.session_state.thread_id,
-                        run_id=run.id,
-                        tool_outputs=outputs
-                    )
+            time.sleep(1)
 
-                elif run.status == "completed":
+# ==================================================
+# FILE UPLOAD → 즉시 분석
+# ==================================================
 
-                    msgs = client.beta.threads.messages.list(
-                        thread_id=st.session_state.thread_id
-                    )
+if uploaded_files:
 
-                    latest = msgs.data[0]
+    st.subheader("📊 파일 분석 결과")
 
-                    for item in latest.content:
-                        if item.type == "text":
-                            text += item.text.value
+    for file in uploaded_files:
 
-                    box.markdown(text)
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(file.read())
+            path = tmp.name
 
-                    st.session_state.messages.append(
-                        {"role": "assistant", "content": text}
-                    )
+        with open(path, "rb") as f:
+            up = client.files.create(
+                file=f,
+                purpose="assistants"
+            )
 
-                    break
+        st.info("분석 중... 💜")
 
-                elif run.status in ["failed","cancelled","expired"]:
-                    st.error("오류 발생")
-                    break
+        result = analyze_file(up.id)
 
-                else:
-                    time.sleep(1)
+        st.success("완료!")
+        st.markdown(result)
