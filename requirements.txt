@@ -17,3 +17,5 @@ python-docx
 yfinance
 lxml
 seaborn
+azure-search-documents
+azure-core
