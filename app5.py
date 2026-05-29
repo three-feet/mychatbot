@@ -68,20 +68,31 @@ if "messages" not in st.session_state:
 # ==================================================
 
 def get_weather_mini():
-    try:
-        loc = requests.get("https://ipapi.co/json/", timeout=3).json()
-        city = loc.get("city", "Seoul")
 
-        w = requests.get(f"https://wttr.in/{city}?format=j1", timeout=3).json()
+    try:
+
+        city = "Seoul"
+
+        w = requests.get(
+            f"https://wttr.in/{city}?format=j1",
+            timeout=3
+        ).json()
+
         cur = w["current_condition"][0]
 
         return {
-            "city": city,
+            "city": "서울",
             "temp": cur["temp_C"],
             "desc": cur["weatherDesc"][0]["value"]
         }
+
     except:
-        return {"city": "Seoul", "temp": "-", "desc": "N/A"}
+
+        return {
+            "city": "서울",
+            "temp": "-",
+            "desc": "N/A"
+        }
 
 # ==================================================
 # 주가 (1주일)
