@@ -287,10 +287,13 @@ if prompt:
 앗 😢 영화 추천 중 오류가 발생했어.
 
 오류 내용:
-```python
+
 {str(e)}
 
+# ============================================
 # 답변 저장
+# ============================================
+
 st.session_state.messages.append(
     {
         "role": "assistant",
@@ -298,7 +301,10 @@ st.session_state.messages.append(
     }
 )
 
+# ============================================
 # 답변 출력
+# ============================================
+
 with st.chat_message("assistant"):
 
     st.markdown(answer)
@@ -306,7 +312,7 @@ with st.chat_message("assistant"):
     st.markdown(
         """
         <div class='movie-card'>
-        💜 오늘도 좋은 영화와 함께 행복한 시간 보내길 바라 ✨
+            💜 오늘도 좋은 영화와 함께 행복한 시간 보내길 바라 ✨
         </div>
         """,
         unsafe_allow_html=True
