@@ -6,6 +6,7 @@ import tempfile
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import yfinance as yf
 
 from openai import AzureOpenAI
@@ -93,15 +94,39 @@ def show_stock_chart():
 
     c1, c2 = st.columns(2)
 
+    # =========================
+    # SK하이닉스
+    # =========================
     with c1:
 
         st.markdown("##### 📈 SK하이닉스")
 
         fig1, ax1 = plt.subplots(figsize=(5, 1.8))
 
-        ax1.plot(hynix.index, hynix.values, color="red", linewidth=2)
+        ax1.plot(
+            hynix.index,
+            hynix.values,
+            color="red",
+            linewidth=2
+        )
 
-        ax1.ticklabel_format(style='plain', axis='y')
+        # 날짜 포맷
+        ax1.xaxis.set_major_formatter(
+            mdates.DateFormatter('%m/%d')
+        )
+
+        # 날짜 간격
+        ax1.xaxis.set_major_locator(
+            mdates.DayLocator(interval=2)
+        )
+
+        # 글자 크기
+        ax1.tick_params(axis='x', labelsize=7)
+
+        ax1.ticklabel_format(
+            style='plain',
+            axis='y'
+        )
 
         plt.tight_layout()
 
@@ -109,17 +134,43 @@ def show_stock_chart():
 
         hynix_latest = hynix.dropna().iloc[-1].item()
 
-        st.caption(f"현재가: {hynix_latest:,.0f}원")
+        st.caption(
+            f"현재가: {hynix_latest:,.0f}원"
+        )
 
+    # =========================
+    # 삼성전자
+    # =========================
     with c2:
 
         st.markdown("##### 📈 삼성전자")
 
         fig2, ax2 = plt.subplots(figsize=(5, 1.8))
 
-        ax2.plot(samsung.index, samsung.values, color="blue", linewidth=2)
+        ax2.plot(
+            samsung.index,
+            samsung.values,
+            color="blue",
+            linewidth=2
+        )
 
-        ax2.ticklabel_format(style='plain', axis='y')
+        # 날짜 포맷
+        ax2.xaxis.set_major_formatter(
+            mdates.DateFormatter('%m/%d')
+        )
+
+        # 날짜 간격
+        ax2.xaxis.set_major_locator(
+            mdates.DayLocator(interval=2)
+        )
+
+        # 글자 크기
+        ax2.tick_params(axis='x', labelsize=7)
+
+        ax2.ticklabel_format(
+            style='plain',
+            axis='y'
+        )
 
         plt.tight_layout()
 
@@ -127,7 +178,9 @@ def show_stock_chart():
 
         samsung_latest = samsung.dropna().iloc[-1].item()
 
-        st.caption(f"현재가: {samsung_latest:,.0f}원")
+        st.caption(
+            f"현재가: {samsung_latest:,.0f}원"
+        )
 
 # ==================================================
 # 파일 분석 (ONE SHOT)
