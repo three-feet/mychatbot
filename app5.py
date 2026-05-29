@@ -206,23 +206,26 @@ with st.sidebar:
 # MAIN
 # ==================================================
 
-col1, col2 = st.columns([2, 1])
+st.title("💜 세무요정 지민")
+st.caption("세법 + 금융 + AI 분석")
 
-with col1:
+# =========================
+# 주가 최상단
+# =========================
 
-    st.title("💜 세무요정 지민")
-    st.caption("세법 + 금융 + AI 분석")
+show_stock_chart()
 
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+st.divider()
 
-    prompt = st.chat_input("세금 / 주식 / 파일 분석 💜")
+# =========================
+# 채팅
+# =========================
 
-with col2:
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-    st.subheader("📈 주가 (1주일)")
-    show_stock_chart()
+prompt = st.chat_input("세금 / 주식 / 파일 분석 💜")
 
 # ==================================================
 # CHAT 처리
