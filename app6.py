@@ -1,6 +1,6 @@
 # app.py
 # ============================================
-# 💜 지민이랑 영화볼래? (Stable Version)
+# 💜 BTS 감성 영화 추천 챗봇
 # Streamlit + Azure OpenAI + Azure AI Search
 # ============================================
 
@@ -32,7 +32,7 @@ apikey = st.secrets["apikey"]
 deploymentname = st.secrets["deploymentname"]
 
 # ============================================
-# Azure OpenAI Client
+# Azure OpenAI
 # ============================================
 
 client = AzureOpenAI(
@@ -42,47 +42,71 @@ client = AzureOpenAI(
 )
 
 # ============================================
-# CSS (safe)
+# 💜 BTS 연보라 테마 CSS
 # ============================================
 
 st.markdown(
     """
     <style>
 
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Pretendard', sans-serif;
+        background-color: #120a1f;
+    }
+
     .stApp {
-        background-image:
-            linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
-            url("https://sstatic.naver.net/people/profileImg/977878c9-7a3e-4434-9fa6-da1eba022a5f.jpg");
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
+        background: linear-gradient(
+            135deg,
+            #120a1f 0%,
+            #2a0f3a 40%,
+            #3b1c5c 100%
+        );
     }
 
-    .title {
+    .main-title {
         text-align: center;
-        font-size: 48px;
+        font-size: 52px;
         font-weight: 800;
-        color: white;
+        color: #e9d5ff;
         margin-top: 20px;
+        text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
     }
 
-    .subtitle {
+    .sub-title {
         text-align: center;
-        color: #e9d5ff;
+        color: #c4b5fd;
         margin-bottom: 30px;
         font-size: 18px;
     }
 
     div[data-testid="stChatMessage"] {
-        background: rgba(255,255,255,0.12);
+        background: rgba(168, 85, 247, 0.12);
+        border: 1px solid rgba(196, 181, 253, 0.25);
         border-radius: 16px;
-        padding: 10px;
+        padding: 12px;
         backdrop-filter: blur(10px);
     }
 
-    .card {
-        background: rgba(255,255,255,0.15);
-        padding: 12px;
+    .stChatInput input {
+        background-color: rgba(255,255,255,0.9) !important;
+        color: black !important;
+        border-radius: 20px !important;
+    }
+
+    section[data-testid="stSidebar"] {
+        background: rgba(20, 10, 35, 0.95);
+    }
+
+    section[data-testid="stSidebar"] * {
+        color: #e9d5ff !important;
+    }
+
+    .movie-card {
+        background: rgba(168, 85, 247, 0.15);
+        border-left: 4px solid #a855f7;
+        padding: 14px;
         border-radius: 14px;
         margin-top: 10px;
     }
@@ -96,37 +120,53 @@ st.markdown(
 # Title
 # ============================================
 
-st.markdown("<div class='title'>💜 지민이랑 영화볼래?</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>지민 감성으로 영화 추천해줄게 ✨</div>", unsafe_allow_html=True)
+st.markdown(
+    """
+    <div class='main-title'>💜 지민이랑 영화볼래?</div>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <div class='sub-title'>
+    보라빛 감성으로 오늘의 영화를 추천해줄게 ✨
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # ============================================
-# Session state
+# Sidebar (Jimin Picks only)
+# ============================================
+
+with st.sidebar:
+
+    st.markdown("## 💜 지민이 추천 영화")
+
+    st.markdown(
+        """
+        🎬 라라랜드  
+        🎬 어바웃 타임  
+        🎬 비긴 어게인  
+        🎬 인터스텔라  
+        🎬 노트북  
+        🎬 콜 미 바이 유어 네임  
+        """
+    )
+
+    st.markdown("---")
+
+    if st.button("🗑️ 대화 초기화"):
+        st.session_state.messages = []
+        st.rerun()
+
+# ============================================
+# Chat state
 # ============================================
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
-
-# ============================================
-# Sidebar
-# ============================================
-
-with st.sidebar:
-    st.markdown("## 🎬 Mood")
-
-    mood = st.selectbox(
-        "오늘 기분",
-        [
-            "로맨스 💕",
-            "감성 😭",
-            "힐링 🌿",
-            "스릴러 🔥",
-            "코미디 😂"
-        ]
-    )
-
-    if st.button("🗑️ Reset Chat"):
-        st.session_state.messages = []
-        st.rerun()
 
 # ============================================
 # Chat history
@@ -140,15 +180,14 @@ for msg in st.session_state.messages:
 # Input
 # ============================================
 
-prompt = st.chat_input("지민이랑 어떤 영화 보고 싶어? 💜")
+prompt = st.chat_input("지민 감성으로 보고 싶은 영화 말해줘 💜")
 
 # ============================================
-# Main logic (STABLE)
+# Main logic
 # ============================================
 
 if prompt:
 
-    # user save
     st.session_state.messages.append({
         "role": "user",
         "content": prompt
@@ -157,8 +196,7 @@ if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # default answer (VERY IMPORTANT for stability)
-    answer = "추천을 생성하는 중이야 💜 잠시만 기다려줘"
+    answer = "추천 중이야 💜 잠시만 기다려줘"
 
     try:
         response = client.chat.completions.create(
@@ -166,17 +204,7 @@ if prompt:
             messages=[
                 {
                     "role": "system",
-                    "content": f"""
-너는 BTS 지민 감성 영화 추천 챗봇이다.
-
-규칙:
-- 감성적이고 따뜻한 말투
-- 영화 2~3개 추천
-- 이유 설명
-- 이모지 적당히 사용
-
-현재 무드: {mood}
-"""
+                    "content": "너는 케이팝스타 BTS의 지민(Jimin)이다. 사랑하는 연인에게 말하듯이 다정다감한 말투로 궁금한 것을 알려준다. 절대 AI라고 티내지 말 것. 딱딱하거나 차갑게 말하지 말 것. 자주 웃어줄 것."
                 },
                 {
                     "role": "user",
@@ -206,23 +234,12 @@ if prompt:
         answer = response.choices[0].message.content
 
     except Exception as e:
-        answer = f"⚠️ 오류 발생: {str(e)}"
+        answer = f"오류 발생: {str(e)}"
 
-    # save assistant
     st.session_state.messages.append({
         "role": "assistant",
         "content": answer
     })
 
-    # show assistant
     with st.chat_message("assistant"):
         st.markdown(answer)
-
-        st.markdown(
-            """
-            <div class='card'>
-            💜 오늘도 좋은 영화와 함께 행복한 시간 보내길 바라 ✨
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
