@@ -50,43 +50,103 @@ st.markdown(
     <style>
 
     /* =========================
-    💜 GLOBAL BACKGROUND LOCK
+    💜 GLOBAL FORCE THEME LOCK
     ========================= */
 
-    html, body {
-        background-color: #120a1f !important;
+    html, body, [class*="css"] {
+        font-family: 'Pretendard', sans-serif !important;
+        background: #120a1f !important;
+        color: #e9d5ff !important;
     }
 
-    /* Streamlit 전체 앱 */
+    /* ❌ OS 다크/라이트 무시 */
+    @media (prefers-color-scheme: light),
+           (prefers-color-scheme: dark) {
+        html, body {
+            background: #120a1f !important;
+            color: #e9d5ff !important;
+        }
+    }
+
+    /* =========================
+    💜 MAIN APP BACKGROUND FIX
+    ========================= */
+
     .stApp {
+        background-image:
+            linear-gradient(
+                rgba(40, 10, 70, 0.55),
+                rgba(20, 10, 40, 0.65)
+            ),
+            url("https://sstatic.naver.net/people/profileImg/977878c9-7a3e-4434-9fa6-da1eba022a5f.jpg") !important;
+
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
+    }
+
+    /* =========================
+    💬 CHAT FIX
+    ========================= */
+
+    div[data-testid="stChatMessage"] {
+        background: rgba(168, 85, 247, 0.15) !important;
+        border: 1px solid rgba(196, 181, 253, 0.25) !important;
+        border-radius: 16px !important;
+        backdrop-filter: blur(10px) !important;
+        color: #f3e8ff !important;
+    }
+
+    /* INPUT */
+    .stChatInput input {
+        background-color: rgba(255,255,255,0.95) !important;
+        color: black !important;
+        border-radius: 20px !important;
+    }
+
+    /* =========================
+    💜 SIDEBAR FIX (FORCED PURPLE)
+    ========================= */
+
+    section[data-testid="stSidebar"] {
         background: linear-gradient(
-            135deg,
-            #120a1f 0%,
-            #2a0f3a 50%,
-            #3b1c5c 100%
+            180deg,
+            #2a0f3a 0%,
+            #3b1c5c 50%,
+            #4c1d95 100%
         ) !important;
     }
 
-    /* Streamlit 기본 컨테이너 (흰색 덮는 주범) */
-    .block-container {
-        background: transparent !important;
+    section[data-testid="stSidebar"] * {
+        color: #f3e8ff !important;
     }
 
-    /* 내부 wrapper 흰색 제거 */
-    section[data-testid="stMain"] {
-        background: transparent !important;
+    /* =========================
+    💜 TITLE
+    ========================= */
+
+    .main-title {
+        text-align: center;
+        font-size: 52px;
+        font-weight: 800;
+        color: #e9d5ff !important;
+        text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
     }
 
-    /* sidebar 제외 전체 배경 강제 고정 */
-    [data-testid="stAppViewContainer"] {
-        background: transparent !important;
+    .sub-title {
+        text-align: center;
+        color: #d8b4fe !important;
     }
 
-    /* OS 라이트모드 무시 */
-    @media (prefers-color-scheme: light) {
-        html, body {
-            background-color: #120a1f !important;
-        }
+    /* =========================
+    💜 CARD
+    ========================= */
+
+    .movie-card {
+        background: rgba(168, 85, 247, 0.15);
+        border-left: 4px solid #a855f7;
+        padding: 14px;
+        border-radius: 14px;
     }
 
     </style>
