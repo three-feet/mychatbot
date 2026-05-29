@@ -53,16 +53,20 @@ st.markdown(
 
     html, body, [class*="css"] {
         font-family: 'Pretendard', sans-serif;
-        background-color: #120a1f;
     }
 
+    /* 💜 지민 배경 다시 살림 */
     .stApp {
-        background: linear-gradient(
-            135deg,
-            #120a1f 0%,
-            #2a0f3a 40%,
-            #3b1c5c 100%
-        );
+        background-image:
+            linear-gradient(
+                rgba(40, 10, 70, 0.55),
+                rgba(20, 10, 40, 0.65)
+            ),
+            url("https://sstatic.naver.net/people/profileImg/977878c9-7a3e-4434-9fa6-da1eba022a5f.jpg");
+
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
     }
 
     .main-title {
@@ -76,11 +80,12 @@ st.markdown(
 
     .sub-title {
         text-align: center;
-        color: #c4b5fd;
+        color: #d8b4fe;
         margin-bottom: 30px;
         font-size: 18px;
     }
 
+    /* 💬 채팅 */
     div[data-testid="stChatMessage"] {
         background: rgba(168, 85, 247, 0.12);
         border: 1px solid rgba(196, 181, 253, 0.25);
@@ -91,18 +96,24 @@ st.markdown(
 
     .stChatInput input {
         background-color: rgba(255,255,255,0.9) !important;
-        color: black !important;
         border-radius: 20px !important;
     }
 
+    /* 💜 사이드바 연보라 핵심 */
     section[data-testid="stSidebar"] {
-        background: rgba(20, 10, 35, 0.95);
+        background: linear-gradient(
+            180deg,
+            #2a0f3a 0%,
+            #3b1c5c 50%,
+            #4c1d95 100%
+        );
     }
 
     section[data-testid="stSidebar"] * {
-        color: #e9d5ff !important;
+        color: #f3e8ff !important;
     }
 
+    /* 카드 */
     .movie-card {
         background: rgba(168, 85, 247, 0.15);
         border-left: 4px solid #a855f7;
