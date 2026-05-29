@@ -49,77 +49,104 @@ st.markdown(
     """
     <style>
 
-    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
+    /* =========================
+    💜 GLOBAL FORCE THEME LOCK
+    ========================= */
 
     html, body, [class*="css"] {
-        font-family: 'Pretendard', sans-serif;
+        font-family: 'Pretendard', sans-serif !important;
+        background: #120a1f !important;
+        color: #e9d5ff !important;
     }
 
-    /* 💜 지민 배경 다시 살림 */
+    /* ❌ OS 다크/라이트 무시 */
+    @media (prefers-color-scheme: light),
+           (prefers-color-scheme: dark) {
+        html, body {
+            background: #120a1f !important;
+            color: #e9d5ff !important;
+        }
+    }
+
+    /* =========================
+    💜 MAIN APP BACKGROUND FIX
+    ========================= */
+
     .stApp {
         background-image:
             linear-gradient(
                 rgba(40, 10, 70, 0.55),
                 rgba(20, 10, 40, 0.65)
             ),
-            url("https://sstatic.naver.net/people/profileImg/977878c9-7a3e-4434-9fa6-da1eba022a5f.jpg");
+            url("https://sstatic.naver.net/people/profileImg/977878c9-7a3e-4434-9fa6-da1eba022a5f.jpg") !important;
 
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
     }
 
-    .main-title {
-        text-align: center;
-        font-size: 52px;
-        font-weight: 800;
-        color: #e9d5ff;
-        margin-top: 20px;
-        text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
-    }
+    /* =========================
+    💬 CHAT FIX
+    ========================= */
 
-    .sub-title {
-        text-align: center;
-        color: #d8b4fe;
-        margin-bottom: 30px;
-        font-size: 18px;
-    }
-
-    /* 💬 채팅 */
     div[data-testid="stChatMessage"] {
-        background: rgba(168, 85, 247, 0.12);
-        border: 1px solid rgba(196, 181, 253, 0.25);
-        border-radius: 16px;
-        padding: 12px;
-        backdrop-filter: blur(10px);
+        background: rgba(168, 85, 247, 0.15) !important;
+        border: 1px solid rgba(196, 181, 253, 0.25) !important;
+        border-radius: 16px !important;
+        backdrop-filter: blur(10px) !important;
+        color: #f3e8ff !important;
     }
 
+    /* INPUT */
     .stChatInput input {
-        background-color: rgba(255,255,255,0.9) !important;
+        background-color: rgba(255,255,255,0.95) !important;
+        color: black !important;
         border-radius: 20px !important;
     }
 
-    /* 💜 사이드바 연보라 핵심 */
+    /* =========================
+    💜 SIDEBAR FIX (FORCED PURPLE)
+    ========================= */
+
     section[data-testid="stSidebar"] {
         background: linear-gradient(
             180deg,
             #2a0f3a 0%,
             #3b1c5c 50%,
             #4c1d95 100%
-        );
+        ) !important;
     }
 
     section[data-testid="stSidebar"] * {
         color: #f3e8ff !important;
     }
 
-    /* 카드 */
+    /* =========================
+    💜 TITLE
+    ========================= */
+
+    .main-title {
+        text-align: center;
+        font-size: 52px;
+        font-weight: 800;
+        color: #e9d5ff !important;
+        text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    }
+
+    .sub-title {
+        text-align: center;
+        color: #d8b4fe !important;
+    }
+
+    /* =========================
+    💜 CARD
+    ========================= */
+
     .movie-card {
         background: rgba(168, 85, 247, 0.15);
         border-left: 4px solid #a855f7;
         padding: 14px;
         border-radius: 14px;
-        margin-top: 10px;
     }
 
     </style>
