@@ -91,45 +91,43 @@ def show_stock_chart():
     hynix = yf.download("000660.KS", period="7d")["Close"]
     samsung = yf.download("005930.KS", period="7d")["Close"]
 
-    # =========================
-    # SK하이닉스 (먼저)
-    # =========================
-    fig1, ax1 = plt.subplots(figsize=(6, 3))
+    c1, c2 = st.columns(2)
 
-    ax1.plot(hynix.index, hynix.values, color="red")
-    ax1.set_title("SK Hynix (7 Days)")
-    ax1.set_ylabel("Price (KRW)")
-    ax1.ticklabel_format(style='plain', axis='y')
-    fig1.autofmt_xdate()
+    with c1:
 
-    st.pyplot(fig1)
+        st.markdown("##### 📈 SK하이닉스")
 
-    hynix_latest = hynix.dropna().iloc[-1].item()
+        fig1, ax1 = plt.subplots(figsize=(5, 1.8))
 
-    st.markdown(
-        f"**📍 SK하이닉스 현재가:** {hynix_latest:,.0f}원"
-    )
+        ax1.plot(hynix.index, hynix.values, color="red", linewidth=2)
 
-    st.divider()
+        ax1.ticklabel_format(style='plain', axis='y')
 
-    # =========================
-    # 삼성전자 (나중)
-    # =========================
-    fig2, ax2 = plt.subplots(figsize=(6, 3))
+        plt.tight_layout()
 
-    ax2.plot(samsung.index, samsung.values, color="blue")
-    ax2.set_title("Samsung Electronics (7 Days)")
-    ax2.set_ylabel("Price (KRW)")
-    ax2.ticklabel_format(style='plain', axis='y')
-    fig2.autofmt_xdate()
+        st.pyplot(fig1)
 
-    st.pyplot(fig2)
+        hynix_latest = hynix.dropna().iloc[-1].item()
 
-    samsung_latest = samsung.dropna().iloc[-1].item()
+        st.caption(f"현재가: {hynix_latest:,.0f}원")
 
-    st.markdown(
-        f"**📍 삼성전자 현재가:** {samsung_latest:,.0f}원"
-    )
+    with c2:
+
+        st.markdown("##### 📈 삼성전자")
+
+        fig2, ax2 = plt.subplots(figsize=(5, 1.8))
+
+        ax2.plot(samsung.index, samsung.values, color="blue", linewidth=2)
+
+        ax2.ticklabel_format(style='plain', axis='y')
+
+        plt.tight_layout()
+
+        st.pyplot(fig2)
+
+        samsung_latest = samsung.dropna().iloc[-1].item()
+
+        st.caption(f"현재가: {samsung_latest:,.0f}원")
 
 # ==================================================
 # 파일 분석 (ONE SHOT)
