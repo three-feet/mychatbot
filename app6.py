@@ -289,7 +289,7 @@ if prompt:
 오류 내용:
 
 {str(e)}
-
+"""
 st.session_state.messages.append(
     {
         "role": "assistant",
